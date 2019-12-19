@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
             print("Round ID: {}".format(round.get_id()))
         elif "round_state" in user_input:
-            round = api.get_round_status(group.get_id(), round.get_id())
+            round = api.get_round_state(group.get_id(), round.get_id())
 
             print("Round ID: {}".format(round.get_id()))
             print("Models: {}".format(str(round.get_models())))
