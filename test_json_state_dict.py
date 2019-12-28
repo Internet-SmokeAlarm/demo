@@ -38,8 +38,6 @@ def load_state_dict(file_path):
         return deserialize_state_dict(DiskModelStorage.load_model(f))
 
 if __name__ == '__main__':
-    #model_param_file_path = "/Users/valetolpegin/Downloads/1734845290075935"
-    #model_param_file_path = "/Users/valetolpegin/Downloads/4958422905188338"
     model_param_file_path = "1099371747173474"
     loaded_state_dict = load_state_dict(model_param_file_path)
 

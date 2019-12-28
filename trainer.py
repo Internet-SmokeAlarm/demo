@@ -116,10 +116,6 @@ class TrainingClient:
         """
         self.net.train()
 
-        # save model
-        if self.args.should_save_model(epoch):
-            self.save_model(epoch, self.args.get_epoch_save_start_suffix())
-
         running_loss = 0.0
         for i, (inputs, labels) in enumerate(self.train_data_loader, 0):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
@@ -140,25 +136,9 @@ class TrainingClient:
 
                 running_loss = 0.0
 
-        # save model
-        if self.args.should_save_model(epoch):
-            self.save_model(epoch, self.args.get_epoch_save_end_suffix())
-
         self.scheduler.step()
 
         return running_loss
-
-    def save_model(self, epoch, suffix):
-        """
-        Saves the model if necessary.
-        """
-        self.args.get_logger().debug("Saving model to flat file storage. Save #{}", epoch)
-
-        if not os.path.exists(self.args.get_save_model_folder_path()):
-            os.mkdir(self.args.get_save_model_folder_path())
-
-        full_save_path = os.path.join(self.args.get_save_model_folder_path(), "model_" + str(self.client_idx) + "_" + str(epoch) + "_" + suffix + ".model")
-        torch.save(self.get_nn_parameters(), full_save_path)
 
     def calculate_class_precision(self, confusion_mat):
         """
@@ -173,12 +153,6 @@ class TrainingClient:
         return numpy.diagonal(confusion_mat) / numpy.sum(confusion_mat, axis=1)
 
     def test(self):
-        if self.args.get_is_classification_problem():
-            return self.test_classification()
-
-        return self.test_linear_regression()
-
-    def test_classification(self):
         self.net.eval()
 
         correct = 0
@@ -214,19 +188,3 @@ class TrainingClient:
         self.args.get_logger().debug("Class recall: {}".format(str(class_recall)))
 
         return accuracy, loss, class_precision, class_recall
-
-    def test_linear_regression(self):
-        self.net.eval()
-
-        loss = 0.0
-        with torch.no_grad():
-            for (images, labels) in self.test_data_loader:
-                images, labels = images.to(self.device), labels.to(self.device)
-
-                outputs = self.net(images)
-
-                loss += self.loss_function(outputs, labels).item()
-
-        self.args.get_logger().debug('Test set: Loss: {}'.format(loss))
-
-        return loss
