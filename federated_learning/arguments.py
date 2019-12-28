@@ -1,5 +1,3 @@
-from .datasets import CIFAR10Dataset
-from .datasets import FashionMNISTDataset
 from .nets import VGGLite
 from .nets import FashionMNISTCNN
 import torch.nn.functional as F
@@ -16,7 +14,6 @@ class Arguments:
 
         self.batch_size = 4
         self.test_batch_size = 1000
-        self.epochs = 50
         self.lr = 0.001
         self.momentum = 0.9
         self.cuda = True
@@ -27,9 +24,6 @@ class Arguments:
         self.scheduler_step_size = 10
         self.scheduler_gamma = 0.1
         self.min_lr = 1e-10
-
-        #self.dataset = CIFAR10Dataset(logger)
-        self.dataset = FashionMNISTDataset(logger)
 
         #self.net = VGGLite
         self.net = FashionMNISTCNN
@@ -67,12 +61,6 @@ class Arguments:
 
     def get_default_model_folder_path(self):
         return self.default_model_folder_path
-
-    def get_num_epochs(self):
-        return self.epochs
-
-    def get_dataset(self):
-        return self.dataset
 
     def get_logger(self):
         return self.logger

@@ -74,7 +74,7 @@ class TrainingClient:
         :param model_file_path: string
         """
         model_class = self.args.get_net()
-        model = model_class(num_outputs=self.args.get_dataset().get_num_classes())
+        model = model_class()
 
         if os.path.exists(model_file_path):
             try:
@@ -94,26 +94,19 @@ class TrainingClient:
         """
         return self.client_idx
 
-    def get_nn_parameters(self):
+    def get_state_dict(self):
         """
-        Return the NN's parameters.
+        :return: torch.nn.state_dict()
         """
         return self.net.state_dict()
 
-    def update_nn_parameters(self, new_params):
+    def set_state_dict(self, state_dict):
         """
-        Update the NN's parameters.
+        :param state_dict: dict(string : numpy)
+        """
+        self.net.load_state_dict(copy.deepcopy(state_dict), strict=True)
 
-        :param new_params: New weights for the neural network
-        :type new_params: dict(key: string, value: numpy)
-        """
-        self.net.load_state_dict(copy.deepcopy(new_params), strict=True)
-
-    def train(self, epoch):
-        """
-        :param epoch: Current epoch #
-        :type epoch: int
-        """
+    def train(self):
         self.net.train()
 
         running_loss = 0.0
@@ -132,7 +125,7 @@ class TrainingClient:
             # print statistics
             running_loss += loss.item()
             if i % self.args.get_log_interval() == 0:
-                self.args.get_logger().info('[%d, %5d] loss: %.3f' % (epoch, i, running_loss / self.args.get_log_interval()))
+                self.args.get_logger().info('[%5d] loss: %.3f' % (i, running_loss / self.args.get_log_interval()))
 
                 running_loss = 0.0
 

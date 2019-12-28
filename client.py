@@ -12,8 +12,8 @@ from federated_learning.utils import load_train_data_loader
 from federated_learning.utils import load_test_data_loader
 from trainer import TrainingClient
 from federated_learning.arguments import Arguments
-from serde import serialize_state_dict
-from serde import deserialize_state_dict
+from fedlearn.serde.pytorch import PyTorchSerializer
+from fedlearn.serde.pytorch import PyTorchDeserializer
 
 app = Flask(__name__)
 
@@ -41,10 +41,7 @@ def load_arguments():
 
     return port
 
-def is_registration_complete(json_data):
-    return "device_id" in json_data and "device_api_key" in json_data
-
-def handle_machine_learning(device_info):
+def execute_federated_learning(device_info):
     device_id = device_info["device_id"]
     device_api_key = device_info["device_api_key"]
     group_id = device_info["group_id"]
@@ -57,47 +54,41 @@ def handle_machine_learning(device_info):
 
     api_client = FedLearnApi(device_api_key)
 
-    round_num = 1
-    round_last_executed = ""
-
     while True:
         while not api_client.is_device_active(group_id, device_id):
-            print("Waiting for device to activate...")
+            logger.info("Waiting for device to activate...")
             sleep(5)
 
-        print("Device active")
+        logger.info("Device active")
 
-        current_round_id_info = api_client.get_group_current_round_id(group_id)
-        print("Current Round ID: {}".format(current_round_id_info.get_id()))
+        current_round_id = api_client.get_group_current_round_id(group_id)
+        logger.info("Current Round ID: {}".format(current_round_id))
 
-        if current_round_id_info.get_id() != round_last_executed:
-            current_round = api_client.get_round_state(group_id, current_round_id_info.get_id())
+        starting_params = api_client.get_round_start_model(group_id, current_round_id)
 
-            if current_round.get_previous_round_id() == "N/A":
-                starting_params = api_client.get_initial_group_model(group_id)
-            else:
-                starting_params = api_client.get_round_aggregate_model(group_id, current_round.get_previous_round_id())
+        logger.info("Updating parameters with new starting parameters")
+        train_client.set_state_dict(PyTorchDeserializer().deserialize(starting_params))
 
-            print("Updating parameters with new starting parameters")
-            train_client.update_nn_parameters(deserialize_state_dict(starting_params))
+        logger.info("Training client")
+        train_client.train()
+        train_client.test()
 
-            print("Training client")
-            train_client.train(round_num)
-            train_client.test()
+        logger.info("Uploading new parameters to the cloud")
+        parameters = PyTorchSerializer().serialize(train_client.get_state_dict())
+        api_client.submit_model_update(parameters, group_id, current_round_id, device_id)
 
-            print("Uploading new parameters to the cloud")
-            parameters = serialize_state_dict(train_client.get_nn_parameters())
-            api_client.submit_model_update(parameters, group_id, current_round_id_info.get_id(), device_id)
+def is_registration_complete(json_data):
+    return len(list(json_data.keys())) != 0
 
-            round_num = round_num + 1
-            round_last_executed = current_round_id_info.get_id()
-
-def run_client(device_info):
+def wait_for_registration(device_info):
     while not is_registration_complete(device_info):
-        print("Waiting for registration information...")
+        logger.info("Waiting for registration information...")
         sleep(1)
 
-    handle_machine_learning(device_info)
+def run_client(device_info):
+    wait_for_registration(device_info)
+
+    execute_federated_learning(device_info)
 
 if __name__ == '__main__':
     port = load_arguments()

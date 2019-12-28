@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 class VGGLite(nn.Module):
 
-    def __init__(self, num_outputs=100):
+    def __init__(self):
         super(VGGLite, self).__init__()
 
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
@@ -26,7 +26,7 @@ class VGGLite(nn.Module):
         self.pool3 = nn.MaxPool2d(kernel_size=2)
 
         self.fc1 = nn.Linear(128 * 4 * 4, 128)
-        self.fc2 = nn.Linear(128, num_outputs)
+        self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
         x = self.bn1(F.relu(self.conv1(x)))

@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 class FashionMNISTCNN(nn.Module):
 
-    def __init__(self, num_outputs=10):
+    def __init__(self):
         super(FashionMNISTCNN, self).__init__()
 
         self.layer1 = nn.Sequential(
@@ -18,7 +18,7 @@ class FashionMNISTCNN(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(2))
 
-        self.fc = nn.Linear(7*7*32, num_outputs)
+        self.fc = nn.Linear(7*7*32, 10)
 
     def forward(self, x):
         x = self.layer1(x)
