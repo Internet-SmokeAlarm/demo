@@ -31,9 +31,14 @@ class Arguments:
         self.train_data_loader_pickle_path = "/Users/valetolpegin/Desktop/data_loaders/fashionmnist/data_dist_a/train_loader.pickle"
         self.test_data_loader_pickle_path = "/Users/valetolpegin/Desktop/data_loaders/fashionmnist/data_dist_a/test_loader.pickle"
 
+        self.data_path = "~/Desktop/GT_Classes/Research_S2020/data"
+
         self.loss_function = torch.nn.CrossEntropyLoss
 
         self.default_model_folder_path = "/Users/valetolpegin/Desktop/default_models"
+
+    def get_data_path(self):
+        return self.data_path
 
     def set_train_data_loader_pickle_path(self, path):
         self.train_data_loader_pickle_path = path

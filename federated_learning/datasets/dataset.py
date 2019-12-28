@@ -6,21 +6,17 @@ import numpy
 
 class Dataset:
 
-	def __init__(self, logger):
-		self.logger = logger
+	def __init__(self, args):
+		self.args = args
 
 		self.train_dataset = self.load_train_dataset()
 		self.test_dataset = self.load_test_dataset()
 
-		self.num_classes = self.calculate_num_classes()
-
-	def get_logger(self):
+	def get_args(self):
 		"""
-		Returns the logger.
-
-		:return: loguru.logger
+		:return: Arguments
 		"""
-		return self.logger
+		return self.args
 
 	def get_train_dataset(self):
 		"""
@@ -109,12 +105,3 @@ class Dataset:
 		:return: tuple
 		"""
 		return (next(iter(data_loader))[0].numpy(), next(iter(data_loader))[1].numpy())
-
-	def calculate_num_classes(self):
-		return len(list(set(self.train_dataset[1])))
-
-	def get_num_classes(self):
-		"""
-		Returns the number of classes in this dataset.
-		"""
-		return self.num_classes
